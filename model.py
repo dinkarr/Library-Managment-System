@@ -40,11 +40,11 @@ class Role(dbase.Model, RoleMixin):
 
 class Book(dbase.Model):
     __tablename__ = 'book'
-    id = dbase.Column(dbase.Integer, primary_key=True)
+    id = dbase.Column(dbase.Integer, primary_key=True )
     name = dbase.Column(dbase.String, nullable=False, unique=True)
     author = dbase.Column(dbase.String, nullable=False)
     subtitle = dbase.Column(dbase.String, nullable=False)
-    sec_id = dbase.Column(dbase.Integer, dbase.ForeignKey('section.id'), nullable=False)
+    ###sec_id = dbase.Column(dbase.Integer, dbase.ForeignKey('section.id'), nullable=False)
     content = dbase.Column(dbase.String)
     image = dbase.Column(dbase.String, nullable=False, unique=True)
     year = dbase.Column(dbase.Integer, nullable=False)
@@ -53,7 +53,7 @@ class Section(dbase.Model):
     __tablename__ = 'section'
     id = dbase.Column(dbase.Integer, primary_key=True)
     name = dbase.Column(dbase.String)
-    bookdatabase = dbase.relationship('Book', backref='section', lazy=False)
+    ###bookdatabase = dbase.relationship('Book', backref='section', lazy=False)
 
 class Record(dbase.Model):
     __tablename__ = 'record'
