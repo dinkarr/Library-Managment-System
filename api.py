@@ -35,7 +35,7 @@ book_fields = {
 
 
 
-class LMS(Resource):
+class LMS(Resource): # For whole application 
     @marshal_with(book_fields) # We are sending all the materials objects that we defined above 
     def get(self):
         all_books = Book.query.all() # table_name.query.all() # we can use filter_by also 
