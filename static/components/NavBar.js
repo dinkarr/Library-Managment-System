@@ -12,16 +12,16 @@ export default{
               <router-link class="nav-link active" aria-current="page" to="/home">Home</router-link>
             </li>
             <li class="nav-item">
-              <router-link class="nav-link" to="/books">Books</router-link>
+              <router-link class="nav-link active" to="/books">Books</router-link>
             </li>
             <li class="nav-item">
-              <router-link class="nav-link" to="/signup">Signup</router-link>
+              <router-link class="nav-link active" v-if="!is_loged_in" to="/signup">Signup</router-link>
             </li>
-            <li class="nav-item" v-if="is_loged_in">
+            <li class="nav-item active" v-if="is_loged_in">
               <button class="nav-link active" @click="logout">LogOut</button>
             </li>
             <li class="nav-item" v-if='role=="librarian"'>
-              <router-link class="nav-link" to="/users">User Info</router-link>
+              <router-link class="nav-link active" to="/users">User Info</router-link>
             </li>
           </ul>
           <form class="d-flex" role="search">

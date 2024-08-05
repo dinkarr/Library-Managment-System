@@ -25,7 +25,10 @@ app.config['WTF_CSRF_ENABLED'] = app.config.get('WTF_CSRF_ENABLED', False)  # Di
 app.config['SECURITY_TOKEN_AUTHENTICATION_HEADER'] = 'Authentication-Token'  # Token authentication header
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Disable modification tracking
 app.config['DEBUG'] = app.config.get('DEBUG', True)  # Enable debug mode
-
+# Security configurations
+app.config['SECURITY_REGISTERABLE'] = True
+app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
+app.config['SECURITY_TRACKABLE'] = True
 
 
 
@@ -129,7 +132,29 @@ def user_info():
         return jsonify({"message":"No user found"}), 404
     return marshal(users , user_fields)
 
-
+@app.get('/book_details')
+def book_details():
+    book_detail = dbase.session.query(Book, Section.name).join(Section, Book.sec_id == Section.id).all()
+    #book_detail = Book.query.join(Section).filter(Book.sec_id == Section.id).all()
+    bk = book_detail[0]
+    print(bk.name )
+    print(bk[0].title)
+    print(bk)
+    return "H"
+'''
+def to_dict(self):
+        return {
+            'id' : self.id,
+            'user_id' : self.user_id,
+            'name': self.name,
+            'description': self.description,
+            'start_date': self.start_date,
+            'end_date': self.end_date,
+            'budget': self.budget,
+            'visibility': self.visibility,
+            'goals': self.goals
+        }
+'''
 
 if __name__=='__main__':
     #dbase.create_all()

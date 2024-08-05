@@ -37,6 +37,7 @@ export default {
                 headers:{
                     'Content-type': 'application/json'
                 },
+                
                 body:JSON.stringify(this.uc),
             });
             if(res.ok){

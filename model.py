@@ -23,7 +23,7 @@ class User(dbase.Model, UserMixin):
     roles = dbase.relationship('Role', secondary='user_roles', backref='users')
     #Taken care by flask-security
     fs_uniquifier = dbase.Column(dbase.String, nullable=False)
-    last_login_at = dbase.Column(dbase.DateTime, default=dt.now())
+    last_login_at = dbase.Column(dbase.DateTime, default=dt.now() ,onupdate=dt.now())
     #current_login_at = dbase.Column(dbase.DateTime, default=dt.now()) # Not Required 
     #current_login_ip = dbase.Column(dbase.String, default="00.00.00.00") # Not Required 
     #login_count = dbase.Column(dbase.Integer, default=0)
@@ -39,11 +39,11 @@ class Role(dbase.Model, RoleMixin):
 
 class Book(dbase.Model):
     __tablename__ = 'book'
-    id = dbase.Column(dbase.Integer, primary_key=True )
-    name = dbase.Column(dbase.String, nullable=False, unique=True)
+    id = dbase.Column(dbase.Integer, primary_key=True , unique = True , autoincrement = True)
+    title = dbase.Column(dbase.String, nullable=False, unique=True)
     author = dbase.Column(dbase.String, nullable=False)
     subtitle = dbase.Column(dbase.String, nullable=False)
-    ###sec_id = dbase.Column(dbase.Integer, dbase.ForeignKey('section.id'), nullable=False)
+    sec_id = dbase.Column(dbase.Integer, dbase.ForeignKey('section.id'), nullable=False)
     content = dbase.Column(dbase.String)
     image = dbase.Column(dbase.String, nullable=False, unique=True)
     year = dbase.Column(dbase.Integer, nullable=False)
@@ -52,7 +52,7 @@ class Section(dbase.Model):
     __tablename__ = 'section'
     id = dbase.Column(dbase.Integer, primary_key=True)
     name = dbase.Column(dbase.String)
-    ###bookdatabase = dbase.relationship('Book', backref='section', lazy=False)
+    bookdatabase = dbase.relationship('Book', backref='section', lazy=False)
 
 class Record(dbase.Model):
     __tablename__ = 'record'
