@@ -1,8 +1,10 @@
 export default {
     template: `
     <div class='d-flex justify-content-center' style="margin-top:24vh">
+    
     <form @submit.prevent="login_user">
         <div class="mb-3 p-5 bg-light">
+            <div class='text-danger'>{{error}}</div>
             <label for="user_email" class="form-label">Email Address</label>
             <input type="email" class="form-control" id="user_email" placeholder = 'Type Your Mail' v-model='uc.email'>
             <label for="user_password" class="form-label">Password</label>
@@ -21,7 +23,8 @@ export default {
                 email: null,
                 password: null,
             },
-            user_role : null,
+            //user_role : null,
+            error: null,
         }
     },
     // Now lets write the methods
@@ -34,16 +37,21 @@ export default {
                 },
                 body:JSON.stringify(this.uc),
             })
+            const data = await res.json()
             if(res.ok){
-                const data = await res.json() // Read the response as json and convert into javascript object
+                 // Read the response as json and convert into javascript object
                 // Now we have the data and want to save it in local storage 
                 localStorage.setItem('auth_token',data.token)
                 localStorage.setItem('role',data.role)
                 localStorage.setItem('email',data.email)
-                this.user_role = data.role 
+                //this.user_role = data.role 
                 // Now the user is loged in , i am pussing to home page 
-                this.$router.push({path : '/home' , query : {role : data.role }})
+                this.$router.push({path : '/home'})
+            }
+            else{
+                this.error = data.message
             }
         }
     },
 }
+// this.$router.push({path : '/home' , query : {role : data.role }})

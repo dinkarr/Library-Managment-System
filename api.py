@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_restful import Api, Resource , reqparse , marshal_with , fields
 from model import dbase, Book, Record
 from flask_jwt_extended import jwt_required
-
+from flask_security import Security, SQLAlchemyUserDatastore, login_required, login_user, logout_user , auth_required , roles_required
 """
 api_bp = Blueprint('api', __name__)
 api = Api(api_bp)
@@ -53,6 +53,12 @@ class LMS(Resource): # For whole application
         # Before commiting check the required fields , if empty dont commit else commit . For this use required = True in arg section , so we dont have to check hear 
         dbase.session.commit()
         return {"message":"Book Added Sucessfully"}
+
+
+
+
+
+
 
 
 

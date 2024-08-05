@@ -6,11 +6,15 @@ import User from "./User.js"
 
 
 export default{
-    template: `<div>Welcome home from Home.js {{$route.query}} </div>`,
+    template: `<div>
+    <User v-if="user_role=='user'"/> 
+    <Admin v-if="user_role=='librarian'"/> 
+    
+    </div>`,
 
     data(){
         return {
-            user_role : this.$route.query,
+            user_role : localStorage.getItem('role'),
         }
     },
 

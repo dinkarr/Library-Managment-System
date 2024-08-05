@@ -6,19 +6,21 @@
 import Home from './components/Home.js'
 import Login from './components/Login.js'
 import Signup from './components/Signup.js'
+import Users from './components/Users.js'
 
 const routes = [
-    {path:'/' , component: Login }, // single configrations // i.e. when ever someone visits '/' then home.js will be rendered 
+    {path:'/' , component: Login  , name:'Login'}, // single configrations // i.e. when ever someone visits '/' then home.js will be rendered 
     // for namesin route , path:"/:name"
     {path: '/home' , component : Home},
-    {path: '/signup' , component : Signup}
+    {path: '/signup' , component : Signup , name:'Signup'},
+    {path: '/users' , component : Users },
     
 ]
 
 
 export default new VueRouter({ 
-    mode:"history",
+    
     routes  
 })
 
-
+//mode:"history",

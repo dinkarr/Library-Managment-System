@@ -17,7 +17,7 @@ class User(dbase.Model, UserMixin):
     __tablename__ = 'user'
     id = dbase.Column(dbase.Integer, primary_key=True, nullable=False, unique=True)
     name = dbase.Column(dbase.String, nullable=False)
-    email = dbase.Column(dbase.String, nullable=False)
+    email = dbase.Column(dbase.String, nullable=False , unique=True)
     password = dbase.Column(dbase.String, nullable=False)
     active = dbase.Column(dbase.Boolean()) # Used for validating the user 
     roles = dbase.relationship('Role', secondary='user_roles', backref='users')
