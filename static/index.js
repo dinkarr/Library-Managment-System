@@ -1,4 +1,4 @@
-// Creating a vier instance
+// Creating a vue instance
 
 import router from "./router.js"
 import NavBar from './components/NavBar.js'

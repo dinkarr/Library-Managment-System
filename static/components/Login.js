@@ -21,6 +21,7 @@ export default {
                 email: null,
                 password: null,
             },
+            user_role : null,
         }
     },
     // Now lets write the methods
@@ -39,8 +40,9 @@ export default {
                 localStorage.setItem('auth_token',data.token)
                 localStorage.setItem('role',data.role)
                 localStorage.setItem('email',data.email)
+                this.user_role = data.role 
                 // Now the user is loged in , i am pussing to home page 
-                this.$router.push('/home')
+                this.$router.push({path : '/home' , query : {role : data.role }})
             }
         }
     },
