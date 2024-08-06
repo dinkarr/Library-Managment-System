@@ -1,5 +1,7 @@
 export default{
     template:`
+     
+
     <div>
     <input type='text' placeholder='Book Title' v-model="resource.title">
     <input type='text' placeholder='Book Author' v-model="resource.author"></input>
@@ -14,6 +16,7 @@ export default{
 
     data(){
         return{
+            
             resource:{
                 title:null ,
                 author:null ,
