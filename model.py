@@ -56,9 +56,9 @@ class Section(dbase.Model):
 
 class Record(dbase.Model):
     __tablename__ = 'record'
-    id = dbase.Column(dbase.Integer, primary_key=True)
+    id = dbase.Column(dbase.Integer, primary_key=True ,autoincrement = True)
     user_id = dbase.Column(dbase.Integer, dbase.ForeignKey('user.id'), nullable=False)
     book_id = dbase.Column(dbase.Integer, dbase.ForeignKey('book.id'), nullable=False)
-    status = dbase.Column(dbase.String, nullable=False, default='Requested')
+    status = dbase.Column(dbase.String, nullable=False)
     req_date = dbase.Column(dbase.Date)
     ret_date = dbase.Column(dbase.Date)

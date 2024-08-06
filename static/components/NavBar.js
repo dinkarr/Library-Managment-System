@@ -17,17 +17,22 @@ export default{
             <li class="nav-item">
               <router-link class="nav-link active" v-if="!is_loged_in" to="/signup">Signup</router-link>
             </li>
-            <li class="nav-item active" v-if="is_loged_in">
-              <button class="nav-link active" @click="logout">LogOut</button>
-            </li>
+            
             <li class="nav-item" v-if='role=="librarian"'>
               <router-link class="nav-link active" to="/users">User Info</router-link>
+            </li>
+            <li class="nav-item" v-if='role=="librarian"'>
+              <router-link class="nav-link active" to="/addbook">Add Book</router-link>
+            </li>
+            <li class="nav-item active" v-if="is_loged_in">
+              <button class="nav-link active" @click="logout">Logout</button>
             </li>
           </ul>
           <form class="d-flex" role="search">
             <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
             <button class="btn btn-outline-success" type="submit">Search</button>
           </form>
+          
         </div>
       </div>
     </nav>

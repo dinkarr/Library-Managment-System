@@ -8,6 +8,7 @@ import Login from './components/Login.js'
 import Signup from './components/Signup.js'
 import Users from './components/Users.js'
 import AddBook from './components/AddBook.js'
+import Books from './components/Books.js'
 
 const routes = [
     {path:'/' , component: Login  , name:'Login'}, // single configrations // i.e. when ever someone visits '/' then home.js will be rendered 
@@ -16,6 +17,7 @@ const routes = [
     {path: '/signup' , component : Signup , name:'Signup'},
     {path: '/users' , component : Users },
     {path: '/addbook' , component : AddBook },
+    {path: '/books' , component : Books },
     
 ]
 

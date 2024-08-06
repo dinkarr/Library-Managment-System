@@ -5,7 +5,7 @@ export default {
     <form @submit.prevent="user_signup">
     
         <div class="mb-3 p-5 bg-light">
-            <label for="user_name" class="form-label">Email Address</label>
+            <label for="user_name" class="form-label">User Name</label>
             <input type="user_name" class="form-control" id="user_name" placeholder = 'Type Your Name' v-model='uc.name'>
             <label for="user_email" class="form-label">Email Address</label>
             <input type="email" class="form-control" id="user_email" placeholder = 'Type Your Mail' v-model='uc.email'>
@@ -41,8 +41,9 @@ export default {
                 body:JSON.stringify(this.uc),
             });
             if(res.ok){
-                //const data = await res.json() // Read the response as json and convert into javascript object
+                const data = await res.json() // Read the response as json and convert into javascript object
                 // Now the user is loged in , i am pussing to home page 
+                alert(data.message)
                 router.push('/')
             }
         }
