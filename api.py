@@ -4,7 +4,7 @@ from model import dbase, Book, Record , Section , User
 from flask_security import auth_required , roles_required , current_user
 from flask_jwt_extended import jwt_required
 from flask_security import Security, SQLAlchemyUserDatastore, auth_required , roles_required
-from sqlalchemy import or_
+from sqlalchemy import or_ 
 from datetime import datetime , date
 from model import *
 
@@ -209,14 +209,117 @@ class Add_Section(Resource):
          
          
 # Route for editing section
+class Edit_Section(Resource):
+    edit_section = reqparse.RequestParser()
+    edit_section.add_argument('section_name', type = str , help = "Invalid Section Name" , required = True)
+    edit_section.add_argument('section_id', type = int , help = "Invalid Section ID" , required = True)
 
+    @auth_required("token")
+    @roles_required("librarian")
+    def post(self):
+        args = self.edit_section.parse_args()
+        section_name = args.get('section_name')
+        section_id = args.get('section_id')
+        sec = Section.query.filter_by(id = section_id ).first()
+        if sec is None:
+            return {"message":"No section found"} , 404
+        existing_sec = Section.query.filter_by(name = section_name).first()
+        if existing_sec:
+            return {"message":"Section already exist"} , 409
+        
+        sec.name = section_name
+        dbase.session.commit()
+        return {"message":"Section edited sucessfully"} , 201
+        
+# Route for editing existing book ## Section id deal with that 
+class Edit_Book(Resource):
+    edit_book = reqparse.RequestParser()
+    edit_book.parser = reqparse.RequestParser()
+    edit_book.add_argument('book_id', type=int, help="Invalid Book ID", required=True)
+    edit_book.add_argument('title', type=str, help="Title of the book", required=True)
+    edit_book.add_argument('author', type=str, help="Author of the book", required=True)
+    edit_book.add_argument('subtitle', type=str, help="Subtitle of the book", required=True)
+    edit_book.add_argument('sec_id', type=int, help="Section ID of the book", required=True)
+    edit_book.add_argument('content', type=str, help="Content of the book", required=True)
+    edit_book.add_argument('image', type=str, help="Image URL of the book", required=True)
+    edit_book.add_argument('year', type=int, help="Publication year of the book", required=True)
+    
+    @auth_required("token") 
+    @roles_required("librarian")  
+    def post(self):
+        args = self.edit_book.parse_args()
+        book_id = args.get('book_id')
+        book = Book.query.filter_by(id=book_id).first()
+        
+        if not book:
+            return {"message": "Book not found"} , 404
+        
+        book.title = args.get('title')
+        book.author = args.get('author')
+        book.subtitle = args.get('subtitle')
+        book.sec_id = args.get('sec_id')
+        book.content = args.get('content')
+        book.image = args.get('image')
+        book.year = args.get('year')
+        dbase.session.commit()
+        
+        return {"message": "Book details updated successfully"}, 200
 
-
-# Route for editing existing book 
 
 # Deleting section # Remember to delete all books of that section and delete recode also 
+class Delete_Section(Resource):
+    delete_section = reqparse.RequestParser()
+    #delete_section.add_argument('section_name', type = str , help = "Invalid Section Name" , required = True)
+    delete_section.add_argument('section_id', type = int , help = "Invalid Section ID" , required = True)
 
+    @auth_required("token")
+    @roles_required("librarian")
+    def post(self):
+        args = self.delete_section.parse_args()
+        section_id = args.get('section_id')
+        section = Section.query.filter_by(id = section_id).first()
+        existing_book_with_section_id = Book.query.filter_by(sec_id = section_id).all()
+        #existing_records_with_section_id = Record.query.filter_by(book_id = existing_book_with_section_id).all()
+        book_ids = [book.id for book in existing_book_with_section_id] # Contains book id 
+        records = Record.query.filter(Record.book_id.in_(book_ids)).all()
+        
+        for record in records:
+            dbase.session.delete(record)
+        for book in existing_book_with_section_id:
+            dbase.session.delete(book)
+            
+        if not section :
+            return {"message":"No section exist "} , 400
+        dbase.session.delete(section)
+        dbase.session.commit()
+        return {"message":"Section deleted Sucessfully"} , 200
+        
+        
 # Deleting book # delete recode 
+class Delete_Book(Resource):
+    delete_book = reqparse.RequestParser()
+    #delete_section.add_argument('section_name', type = str , help = "Invalid Section Name" , required = True)
+    delete_book.add_argument('book_id', type = int , help = "Invalid Book ID" , required = True)
+
+    @auth_required("token")
+    @roles_required("librarian")
+    def post(self):
+        args = self.delete_book.parse_args()
+        book_id = args.get('book_id')
+        book = Book.query.filter_by(id = book_id).first()
+        existing_record = Record.query.filter_by(book_id = book_id).all()
+        
+        if not book:
+            return {"message":"Book dosent exist"} , 400
+        
+        for record in existing_record:
+            dbase.session.delete(record)
+        dbase.session.delete(book)
+        dbase.session.commit()
+        
+        return {"message":"Book deleted Sucessfully"} , 200
+
+
 
 
 api.add_resource(Add_Book , '/add_book')
@@ -224,3 +327,7 @@ api.add_resource(Book_Request , '/book_request' )
 api.add_resource(Approve_Request , '/approve_request' )
 api.add_resource(Revoke_Book , '/revoke_book' )
 api.add_resource(Add_Section , '/add_section' )
+api.add_resource(Edit_Section , '/edit_section' )
+api.add_resource(Delete_Section , '/delete_section' )
+api.add_resource(Delete_Book , '/delete_book' )
+api.add_resource(Edit_Book , '/edit_book' )
