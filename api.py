@@ -1,9 +1,6 @@
 from flask import Blueprint, request, jsonify
-from flask_restful import Api, Resource , reqparse , marshal_with , fields 
-from model import dbase, Book, Record , Section , User 
-from flask_security import auth_required , roles_required , current_user
-from flask_jwt_extended import jwt_required
-from flask_security import Security, SQLAlchemyUserDatastore, auth_required , roles_required
+from flask_restful import Api, Resource , reqparse , marshal_with , fields  
+from flask_security import auth_required , roles_required , current_user 
 from sqlalchemy import or_ 
 from datetime import datetime , date
 from model import *
@@ -31,7 +28,7 @@ book_fields = {
 }
 '''
 
-# For adding and getting Books
+# For adding and getting Books # Done
 class Add_Book(Resource):
     
     parser = reqparse.RequestParser()
@@ -93,14 +90,14 @@ class Add_Book(Resource):
         return {"message":"Book Added Sucessfully"} , 201
     
 
-# Now create a api for accepting Book request 
+# Now create a api for accepting Book request # Done
 class Book_Request(Resource):
     
     user_request_book = reqparse.RequestParser()
     user_request_book.add_argument('user_email', type = str , help = "Invalid Email" , required = True )
     user_request_book.add_argument('book_id', type = int , help = "Invalid book ID" , required = True)
     user_request_book.add_argument('ret_date', type = str , help = "Invalid returning date" , required = True)
-        
+
     @auth_required("token")  
     #@roles_required("librarian")
     def post(self):
@@ -108,9 +105,12 @@ class Book_Request(Resource):
         user = User.query.filter_by(email = args.get('user_email')).first()
         user_id = user.id 
         book_id = args.get('book_id')
-        existing_request = Record.query.filter_by(user_id = user_id , book_id = book_id , status = 'Requested').first()
+        #existing_request = Record.query.filter_by(user_id = user_id , book_id = book_id , status = 'Requested').first()
         #user_book_count = Record.query.filter_by(user_id = user_id , status = "Requested" )
         user_book_count = Record.query.filter_by(user_id=user_id).filter(or_(Record.status == "Requested", Record.status == "Issued")).count()
+        existing_request = dbase.session().query(Record).filter_by(user_id=user_id, book_id=book_id).filter(
+            or_(Record.status == 'Requested', Record.status == 'Issued')
+        ).first()
         
         if existing_request:
             return {"message":"Already requested"} , 409
@@ -132,7 +132,7 @@ class Book_Request(Resource):
         return {"message":"Request placed sucessfully"} , 201
 
 
-# Lets create to approve the request
+# Lets create to approve the request # Done
 class Approve_Request(Resource):
     
     request_id = reqparse.RequestParser()
@@ -153,7 +153,7 @@ class Approve_Request(Resource):
         return {"message":"Request Approved"} , 201
         
         
-# Lets revoke the access of a book 
+# Lets revoke the access of a book # Done
 class Revoke_Book(Resource):
     
     revoke_id = reqparse.RequestParser()
@@ -186,8 +186,8 @@ class Add_Section(Resource):
         all_sections = []
         for section in sections:
             all_sections.append({
-                'id': section.id,
-                'name': section.name
+                'section_id': section.id,
+                'section_name': section.name
             })
         if len(all_sections) > 0:
             return all_sections 
@@ -234,7 +234,7 @@ class Edit_Section(Resource):
         dbase.session.commit()
         return {"message":"Section edited sucessfully"} , 201
         
-# Route for editing existing book ## Section id deal with that 
+# Route for editing existing book ## Section id deal with that # Done
 class Edit_Book(Resource):
     edit_book = reqparse.RequestParser()
     edit_book.parser = reqparse.RequestParser()
@@ -298,7 +298,7 @@ class Delete_Section(Resource):
         return {"message":"Section deleted Sucessfully"} , 200
         
         
-# Deleting book # delete recode 
+# Deleting book # delete recode # Done
 class Delete_Book(Resource):
     delete_book = reqparse.RequestParser()
     #delete_section.add_argument('section_name', type = str , help = "Invalid Section Name" , required = True)
@@ -322,7 +322,62 @@ class Delete_Book(Resource):
         
         return {"message":"Book deleted Sucessfully"} , 200
 
-
+# Query on Recodr to get recode # Done 
+class Record_Query(Resource):
+    @auth_required("token")
+    #@roles_required("librarian")
+    def get(self):     
+        res = dbase.session().query(
+            Record.id.label('record_id'),
+            Record.book_id,
+            Record.user_id,
+            Record.ret_date,
+            Record.req_date,
+            Record.status,
+            Book.title.label('book_name'),
+            Book.content.label('book_content'),
+            User.name.label('user_name'),
+            Section.name.label('section_name')
+        ).join(Book, Record.book_id == Book.id) \
+         .join(User, Record.user_id == User.id) \
+         .join(Section, Book.sec_id == Section.id).all()
+         
+        if "user" in current_user.roles:
+            res = dbase.session().query(
+            Record.id.label('record_id'),
+            Record.book_id,
+            Record.user_id,
+            Record.ret_date,
+            Record.req_date,
+            Record.status,
+            Book.title.label('book_name'),
+            Book.content.label('book_content'),
+            User.name.label('user_name'),
+            Section.name.label('section_name')
+        ).join(Book, Record.book_id == Book.id) \
+         .join(User, Record.user_id == User.id) \
+         .join(Section, Book.sec_id == Section.id) \
+        .filter(Record.user_id == current_user.id)
+             
+        record_list = []
+        for r in res:
+            record_list.append({
+            'record_id': r.record_id,
+            'status': r.status,
+            'book_id': r.book_id,
+            'user_id': r.user_id,
+            'book_name': r.book_name,
+            'user_name': r.user_name,
+            'section_name': r.section_name,
+            "book_content":r.book_content,
+            "req_date":r.req_date.strftime("%Y-%m-%d") if r.req_date else None,
+            "ret_date":r.ret_date.strftime("%Y-%m-%d") if r.ret_date else None,
+            })
+            
+        if len(record_list) >0:
+            return record_list
+        else:
+            return{"message":"No record in records table"} , 200
 
 
 api.add_resource(Add_Book , '/add_book')
@@ -334,3 +389,8 @@ api.add_resource(Edit_Section , '/edit_section' )
 api.add_resource(Delete_Section , '/delete_section' )
 api.add_resource(Delete_Book , '/delete_book' )
 api.add_resource(Edit_Book , '/edit_book' )
+api.add_resource(Record_Query , '/record_query' )
+
+
+
+

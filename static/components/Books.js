@@ -17,40 +17,29 @@ export default{
                         <button  @click="request_book(book.id)" class="btn btn-primary" style="width: 100%;">Request</button>
                     </div>
                     <div v-if='auth_token && role=="librarian"'>
-                        <button  @click="editBook(book)" class="btn btn-primary" style="width: 100%;">Edit</button>
+                        <button  @click="editBook(book)" class="btn btn-primary" style="width: 80%;">Edit</button>
+                        
+                        <button  @click="delete_book(book.id)" class="btn btn-danger" style="width: 80%;">Delete</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div v-if="editingBook" style="margin-top: 20px;">
-      <h2>Edit Book</h2>
-      <form @submit.prevent="updateBook">
-        <div>
-          <input type="text" v-model="editingBook.title" placeholder="Title">
-        </div>
-        <div>
-          <input type="text" v-model="editingBook.author" placeholder="Author">
-        </div>
-        <div>
-          <input type="text" v-model="editingBook.subtitle" placeholder="Subtitle">
-        </div>
-        <div>
-          <input type="number" v-model="editingBook.sec_id" placeholder="Section ID">
-        </div>
-        <div>
-          <textarea v-model="editingBook.content" rows="4" placeholder="Content"></textarea>
-        </div>
-        <div>
-          <input type="text" v-model="editingBook.image" placeholder="Image URL">
-        </div>
-        <div>
-          <input type="number" v-model="editingBook.year" placeholder="Publication Year">
-        </div>
-        <button type="submit">Update</button>
-        <button type="button" @click="cancelEdit">Cancel</button>
-      </form>
-    </div>
+    <div v-if="editingBook" style="margin-top: 20px; font-family: Arial, sans-serif;">
+  <h2 style="margin-bottom: 15px;">Edit Book</h2>
+  <form @submit.prevent="updateBook" style="display: flex; flex-direction: column; gap: 10px; max-width: 400px;">
+    <input type="text" v-model="editingBook.title" placeholder="Title" style="padding: 8px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px;">
+    <input type="text" v-model="editingBook.author" placeholder="Author" style="padding: 8px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px;">
+    <input type="text" v-model="editingBook.subtitle" placeholder="Subtitle" style="padding: 8px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px;">
+    <input type="number" v-model="editingBook.section_id" placeholder="Section ID" style="padding: 8px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px;">
+    <textarea v-model="editingBook.content" rows="4" placeholder="Content" style="padding: 8px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px;"></textarea>
+    <input type="text" v-model="editingBook.image" placeholder="Image URL" style="padding: 8px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px;">
+    <input type="number" v-model="editingBook.year" placeholder="Publication Year" style="padding: 8px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px;">
+    <button type="submit" style="padding: 10px; font-size: 16px; color: #fff; background-color: #007bff; border: none; border-radius: 4px; cursor: pointer;">Update</button>
+    <button type="button" @click="cancelEdit" style="padding: 10px; font-size: 16px; color: #fff; background-color: #6c757d; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+  </form>
+</div>
+
 </div>
 
     `,
@@ -69,6 +58,9 @@ export default{
                 ret_date : '',
             },
             editingBook:null ,
+            delete_resource:{
+                book_id : null,
+            },
         }
 
     },
@@ -128,7 +120,6 @@ export default{
             if(res.ok){
                 alert(data.message)
                 this.editingBook = null
-                //this.fetchBooks()
                 await this.fetchBook()
                 
             }
@@ -146,16 +137,38 @@ export default{
                     "Authentication-Token":this.auth_token,
                 },
             })
-            console.log(res)
             const data = await res.json()
-            console.log(data)
             if(res.ok){
             this.all_books = data
+            // await this.fetchBook()
             }
             else{
                 alert(data.message)
             }
         },
+
+        async delete_book(bid){
+            this.delete_resource.book_id = bid ;
+            const res = await fetch('/api/delete_book',{
+                method : 'POST',
+                headers:{
+                    "Authentication-Token": this.auth_token ,
+                    "Content-Type":`application/json`,
+                },
+                body : JSON.stringify(this.delete_resource),
+            })
+            const data = await res.json()
+            if (res.ok){
+                alert(data.message)
+                await this.request_list()
+            }
+            else{
+                alert(data.message)
+            }
+        },
+
+
+
     },
     
     async mounted(){
@@ -165,9 +178,7 @@ export default{
                 "Authentication-Token":this.auth_token,
             },
         })
-        console.log(res)
         const data = await res.json()
-        console.log(data)
         if(res.ok){
         this.all_books = data
         }
