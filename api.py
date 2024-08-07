@@ -50,6 +50,7 @@ class Add_Book(Resource):
         all_books = []
         for book, section in books:
             all_books.append({
+                'id':book.id,
                 'title': book.title,
                 'author': book.author,
                 'subtitle': book.subtitle,
