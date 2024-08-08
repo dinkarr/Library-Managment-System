@@ -1,30 +1,40 @@
 export default{
     template:`
-    <div style="margin: 2%;">
-    <div v-if="all_books && all_books.length" class="row">
-        <div v-for="book in all_books" :key="book.id" class="col-md-2 mb-3">
-            <div class="card" style="padding: 0; width: 100%; height: 100%;">
-                <img :src="book.image" class="card-img-top" :alt="book.title" style="width: 100%; height: 175px; object-fit: cover;">
-                <div class="card-body" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
-                    <div>
-                        <h6 class="card-title">{{ book.title }}</h6>
-                        <p class="card-text">Author : {{ book.author }}</p>
-                        <p class="card-text">Subtitle : {{ book.subtitle }}</p>
-                        <p class="card-text">Section : {{ book.section_name }}</p>
-                    </div>
-                    <div v-if='auth_token && role=="user"'>
-                        <input type='date' v-model="resource.ret_date" :min="minDate" :max="maxDate" required style="width: 100%; margin-bottom: 10px;">
-                        <button  @click="request_book(book.id)" class="btn btn-primary" style="width: 100%;">Request</button>
-                    </div>
-                    <div v-if='auth_token && role=="librarian"'>
-                        <button  @click="editBook(book)" class="btn btn-primary" style="width: 80%;">Edit</button>
-                        
-                        <button  @click="delete_book(book.id)" class="btn btn-danger" style="width: 80%;">Delete</button>
+<div style="margin: 2%;">
+    <input v-model="searchQuery" placeholder="Search by title, author, or genre" style="width: 100%; padding: 8px; margin-bottom: 20px;">
+    <div>
+        <div v-if="filteredBooks.length" class="row">
+            <div v-for="book in filteredBooks" :key="book.id" class="col-md-3 mb-3">
+                <div class="card" style="padding: 0; width: 100%; height: 100%;">
+                    <img :src="book.image" class="card-img-top" :alt="book.title" style="width: 100%; height: auto; aspect-ratio: 3 / 4;">
+                    <div class="card-body" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div>
+                            <h6 class="card-title">{{ book.title }}</h6>
+                            <p class="card-text">Author : {{ book.author }}</p>
+                            <p class="card-text">Subtitle : {{ book.subtitle }}</p>
+                            <p class="card-text">Section : {{ book.section_name }}</p>
+                        </div>
+                        <div v-if='auth_token && role=="user"'>
+                            <input type='date' v-model="resource.ret_date" :min="minDate" :max="maxDate" required style="width: 100%; margin-bottom: 10px;">
+                            <button  @click="request_book(book.id)" class="btn btn-primary" style="width: 100%;">Request</button>
+                        </div>
+                        <div v-if='auth_token && role=="librarian"'>
+                            <button  @click="editBook(book)" class="btn btn-primary" style="width: 80%;">Edit</button>
+                            
+                            <button  @click="delete_book(book.id)" class="btn btn-danger" style="width: 80%;">Delete</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+        <div v-else>
+            <p>No books found</p>
+        </div>
     </div>
+    
+
+
+
     <div v-if="editingBook" style="margin-top: 20px; font-family: Arial, sans-serif;">
   <h2 style="margin-bottom: 15px;">Edit Book</h2>
   <form @submit.prevent="updateBook" style="display: flex; flex-direction: column; gap: 10px; max-width: 400px;">
@@ -38,7 +48,7 @@ export default{
     <button type="submit" style="padding: 10px; font-size: 16px; color: #fff; background-color: #007bff; border: none; border-radius: 4px; cursor: pointer;">Update</button>
     <button type="button" @click="cancelEdit" style="padding: 10px; font-size: 16px; color: #fff; background-color: #6c757d; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
   </form>
-</div>
+    </div>
 
 </div>
 
@@ -46,6 +56,7 @@ export default{
     data(){
         return{
             all_books: [],
+            searchQuery: '' ,
             auth_token : localStorage.getItem("auth_token"),
             role : localStorage.getItem("role"),
             email : localStorage.getItem("email"),
@@ -66,7 +77,22 @@ export default{
     },
     created() {
         this.updateDateRange();
-      },
+    },
+    computed: {
+        filteredBooks() {
+          if (!this.searchQuery) {
+            return this.all_books;
+            }
+            const query = this.searchQuery.toLowerCase();
+            return this.all_books.filter(book =>
+            book.title.toLowerCase().includes(query) ||
+            book.author.toLowerCase().includes(query) ||
+            (book.section_name && book.section_name.toLowerCase().includes(query))
+          );
+        }
+    },
+     
+
     methods :{
         updateDateRange() {
             const today = new Date();
@@ -170,7 +196,7 @@ export default{
 
 
     },
-    
+
     async mounted(){
         const res =  await fetch('/api/add_book' , {
             method: 'GET',

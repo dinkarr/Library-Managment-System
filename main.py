@@ -166,3 +166,6 @@ if __name__=='__main__':
 # # 1:16:18 # admin dashboard and checking the user typr and all other factors    
 ## Problem that the user is creating twice 
 ## Other problem is localStorage , everytime i loging as user and then login as admin , the local storage is empty 
+
+# Search done using js , 
+# Now do user can read , cancle request , user profile 
