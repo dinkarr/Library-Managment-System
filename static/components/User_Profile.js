@@ -1,32 +1,36 @@
+import Read_Book from "./Read_Book.js";
 
 export default{
     template : `
     <div> 
+        <div>
+            <div v-if="selectedBook" style="padding: 20px; border: 1px solid #ddd; border-radius: 4px;">
+            <Read_Book :book="selectedBook" @close="closeBook" /></div>
+        </div>
         <br>
         <div :style="containerStyle">
             <div style="text-align: center; margin-bottom: 15px;">
-                <h5 style="margin-bottom: 10px;">Rending Requests</h5>
+                <h5 style="margin-bottom: 10px;">My Rending Requests</h5>
                 <hr style="border: 1px solid #ddd; width: 60%; margin: 0 auto;">
             </div>
             <table class="table">
             <thead>
                 <tr>
-                <th scope="col">User Name</th>
                 <th scope="col">Book Name</th>
                 <th scope="col">Request Date</th>
                 <th scope="col">Returning Date</th>
-                <th scope="col">Approve</th>
+                <th scope="col">Status</th>
+                <th scope="col">Cancle Request</th>
                 </tr>
             </thead>
             <tbody>
                 <tr v-for="(request, index) in pending_req" :key="index" v-if="request.status === 'Requested'">
-                <td>{{ request.user_name }}</td>
                 <td>{{ request.book_name }}</td>
                 <td>{{ request.req_date }}</td>
                 <td>{{ request.ret_date }}</td>
-                
+                <td>{{ request.status }}</td>
                 <td>
-                <button  @click="approve_request(request.record_id)" class="btn btn-primary" >Approve</button>
+                <button  @click="approve_request(request.record_id)" class="btn btn-danger" >Cancle Request</button>
                  </td>
                 </tr>
             </tbody>
@@ -35,29 +39,26 @@ export default{
         <br>
         <div :style="containerStyle">
             <div style="text-align: center; margin-bottom: 15px;">
-                <h5 style="margin-bottom: 10px;">Issued Books</h5>
+                <h6 style="margin-bottom: 10px;">My Books</h6>
                 <hr style="border: 1px solid #ddd; width: 60%; margin: 0 auto;">
             </div>
             <table class="table">
             <thead>
                 <tr>
-                <th scope="col">User Name</th>
                 <th scope="col">Book Name</th>
                 <th scope="col">Request Date</th>
                 <th scope="col">Returning Date</th>
-                <th scope="col">Revoke</th>
+                <th scope="col">Read</th>
+                <th scope="col">Return</th>
                 </tr>
             </thead>
             <tbody>
                 <tr v-for="(request, index) in pending_req" :key="index" v-if="request.status === 'Issued'">
-                <td>{{ request.user_name }}</td>
                 <td>{{ request.book_name }}</td>
                 <td>{{ request.req_date }}</td>
                 <td>{{ request.ret_date }}</td>
-                
-                <td>
-                <button  @click="revoke_book(request.record_id)" class="btn btn-primary" >Revoke</button>
-                 </td>
+                <td><button  @click="read(request.book_id)" class="btn btn-primary" >Read</button></td>
+                <td><button  @click="revoke_book(request.record_id)" class="btn btn-danger" >Return</button></td>
                 </tr>
             </tbody>
             </table>
@@ -66,7 +67,7 @@ export default{
     </div>`,
     data(){
         return{
-            
+            selectedBook: null,
             pending_req : [],
             auth_token: localStorage.getItem("auth_token"),
             role: localStorage.getItem("role"),
@@ -82,8 +83,13 @@ export default{
             resource_revoke:{
                 req_id : null,
             },
+            
         }
     },
+    components: {
+        Read_Book,
+    },
+
     methods :{
         async request_list(){
             const res = await fetch('/api/record_query',{
@@ -138,6 +144,18 @@ export default{
                 alert(data.message)
             }
         },
+
+        async read(bid) {
+            const book = this.pending_req.find(request => request.book_id === bid);
+            if (book) {
+              this.selectedBook = book;
+            } else {
+              alert("Book not found");
+            }
+          },
+          closeBook() {
+            this.selectedBook = null;
+          },
 
 
 

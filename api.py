@@ -132,14 +132,14 @@ class Book_Request(Resource):
         return {"message":"Request placed sucessfully"} , 201
 
 
-# Lets create to approve the request # Done
+# Lets create to approve the request # Done # For cancle also
 class Approve_Request(Resource):
     
     request_id = reqparse.RequestParser()
     request_id.add_argument('req_id', type = int , help = "Invalid Request ID" , required = True)
     
     @auth_required("token")  
-    @roles_required("librarian")
+    #@roles_required("librarian")
     def post(self):
         args = self.request_id.parse_args()
         req_idd = args.get('req_id')
@@ -148,9 +148,15 @@ class Approve_Request(Resource):
         if not req:
             return {"message" : "Request dosent exist"} , 404
         
-        req.status = "Issued"
-        dbase.session.commit()
-        return {"message":"Request Approved"} , 201
+        if "user" in current_user.roles:
+            req.status = "Cancled"
+            dbase.session.commit()
+            return {"message":"Request Cancled Sucessfully"} , 200
+        
+        if "librarian" in current_user.roles:
+            req.status = "Issued"
+            dbase.session.commit()
+            return {"message":"Request Approved"} , 201
         
         
 # Lets revoke the access of a book # Done
@@ -160,19 +166,26 @@ class Revoke_Book(Resource):
     revoke_id.add_argument('req_id', type = int , help = "Invalid Request ID" , required = True)  
     
     @auth_required("token")  
-    @roles_required("librarian")
+    #@roles_required("librarian")
     def post(self):
         args = self.revoke_id.parse_args()
         req_id = args.get('req_id')
         revoke = Record.query.filter_by(id = req_id ).first()
         current_status = revoke.status
-        # if current_status == "Issued":
-        #     return {"message":"Not Issued"} , 409
+        
+        if "user" in current_user.roles:
+            if current_status == "Requested":
+                return {"message":"Not Issued"} , 404
+            revoke.status = "Returned"
+            dbase.session.commit()
+            return {"message":"Returned Sucessfully"} , 201
+        
         if current_status == "Requested":
             return {"message":"Not Issued"}
-        revoke.status = "Revoked"
-        dbase.session.commit()
-        return {"message":"Access revoked"} , 201
+        if "librarian" in current_user.roles:
+            revoke.status = "Revoked"
+            dbase.session.commit()
+            return {"message":"Access revoked"} , 201
  
 
 # Now create route for adding section 
