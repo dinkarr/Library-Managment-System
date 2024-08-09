@@ -85,6 +85,8 @@ def user_login():
     if not user:
         return jsonify({"message": "USER not found , kindly SignUP" }) , 404
     if check_password_hash(user.password , data.get('password')): # data_base pass , input pass 
+        user.last_login_at = dt.now()
+        dbase.session.commit()
         # Insted of token(In body) we can return user role , email and etc
         return jsonify({"token": user.get_auth_token() , "email" : user.email , "role" : user.roles[0].name}) , 200 ##user.roles[0].name }) , 200 # Why list and why .name ???  ## "user"
     else:
@@ -132,29 +134,16 @@ def user_info():
         return jsonify({"message":"No user found"}), 404
     return marshal(users , user_fields)
 
-@app.get('/book_details')
-def book_details():
-    book_detail = dbase.session.query(Book, Section.name).join(Section, Book.sec_id == Section.id).all()
-    #book_detail = Book.query.join(Section).filter(Book.sec_id == Section.id).all()
-    bk = book_detail[0]
-    print(bk.name )
-    print(bk[0].title)
-    print(bk)
-    return "H"
-'''
-def to_dict(self):
-        return {
-            'id' : self.id,
-            'user_id' : self.user_id,
-            'name': self.name,
-            'description': self.description,
-            'start_date': self.start_date,
-            'end_date': self.end_date,
-            'budget': self.budget,
-            'visibility': self.visibility,
-            'goals': self.goals
-        }
-'''
+# @app.get('/book_details')
+# def book_details():
+#     book_detail = dbase.session.query(Book, Section.name).join(Section, Book.sec_id == Section.id).all()
+#     #book_detail = Book.query.join(Section).filter(Book.sec_id == Section.id).all()
+#     bk = book_detail[0]
+#     print(bk.name )
+#     print(bk[0].title)
+#     print(bk)
+#     return "H"
+
 
 if __name__=='__main__':
     #dbase.create_all()
