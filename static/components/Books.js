@@ -41,7 +41,7 @@ export default{
     <input type="text" v-model="editingBook.title" placeholder="Title" style="padding: 8px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px;">
     <input type="text" v-model="editingBook.author" placeholder="Author" style="padding: 8px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px;">
     <input type="text" v-model="editingBook.subtitle" placeholder="Subtitle" style="padding: 8px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px;">
-    <input type="number" v-model="editingBook.section_id" placeholder="Section ID" style="padding: 8px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px;">
+    <input type="number" v-model="editingBook.sec_id" placeholder="Section ID" style="padding: 8px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px;">
     <textarea v-model="editingBook.content" rows="4" placeholder="Content" style="padding: 8px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px;"></textarea>
     <input type="text" v-model="editingBook.image" placeholder="Image URL" style="padding: 8px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px;">
     <input type="number" v-model="editingBook.year" placeholder="Publication Year" style="padding: 8px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px;">
@@ -127,8 +127,8 @@ export default{
                 title: book.title,
                 author: book.author,
                 subtitle: book.subtitle,
-                sec_id: book.sec_id,
                 content: book.content,
+                sec_id: book.section_id ,
                 image: book.image,
                 year: book.year,
             };
