@@ -2,16 +2,16 @@ from flask import Flask , render_template , request , redirect , url_for , flash
 from model import *  
 from api import *
 import os
-from sqlalchemy import func
-#from flask_security.utils import hash_password, verify_password
+from sqlalchemy import func 
 from flask_security import  SQLAlchemyUserDatastore, auth_required , roles_required
 from flask_jwt_extended import JWTManager
 from flask_restful import fields , marshal
 from create_initial_data import create_data
 from werkzeug.security import check_password_hash , generate_password_hash
 from worker import celery_init_app
-from task import add
-
+from task import create_csv , add
+from celery.result import AsyncResult # Will use to retreve the task result giving the task id as arg 
+import flask_excel as excel
 
 curr_dict = os.path.abspath(os.path.dirname(__file__))
 
@@ -29,9 +29,9 @@ app.config['SECURITY_TOKEN_AUTHENTICATION_HEADER'] = 'Authentication-Token'  # T
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Disable modification tracking
 app.config['DEBUG'] = app.config.get('DEBUG', True)  # Enable debug mode
 # Security configurations
-app.config['SECURITY_REGISTERABLE'] = True
-app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
-app.config['SECURITY_TRACKABLE'] = True
+# app.config['SECURITY_REGISTERABLE'] = True
+# app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
+# app.config['SECURITY_TRACKABLE'] = True
 
 
 
@@ -46,11 +46,12 @@ with app.app_context():
     security.init_app(app, user_datastore)
     dbase.create_all()
     celery_app = celery_init_app(app)
+    #excel.init_excel(app)
     # Only run create_data if not in reloader
     if os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
         create_data(user_datastore)
         
-        
+excel.init_excel(app)      
 
 @app.get('/') # , methods = ['GET','POST'])
 def home():
@@ -139,13 +140,43 @@ def user_info():
 # For making synchronus will use the functionf of shared_task decoraters 
 @app.route('/c_demo')
 def c_demo():
-    add.delay(2,5) # It wont trigger right now it will triger later , and the parameters of add will go inside delay
-    return "Celery Test"
+    #add.delay(2,5) # It wont trigger right now it will triger later , and the parameters of add will go inside delay
+    # In the above line we have triggred the function but we didnt get the data back , for that we need to send the task id and later it will be used to retrive the data 
+    # So we create a variable and store the task there 
+    
+    task = add.delay(9,7)
+    return jsonify({"Taks ID": task.id }) #v task is the variable name and the id is the function that will give the id # Will send the id to frontend and later will ask that the task is completed or not 
 
 
+## Creating another route for retriving the data 
 
 
+@app.route('/get_task/<task_id>')
+def get_task(task_id):
+    # Now i nedd to get my taks , fetch the task from result backend 
+    result = AsyncResult(task_id)
+    
+    #result.ready() # If task is completed it will return true else false 
+    if result.ready():
+        return jsonify({"result":result.result}) , 200  #result.result -> first is variable and second is function that returns the result
+    else :
+        return "Task Not Ready" , 405 
 
+@app.route('/start_exp')
+def start_exp():
+    task = create_csv.delay()
+    return jsonify({"Exported Result CSV": task.id })
+
+
+@app.route('/get_exp/<task_id>')
+def get_exp(task_id):
+    result = AsyncResult(task_id)
+    
+    #result.ready() # If task is completed it will return true else false 
+    if result.ready():
+        return jsonify({"result":result.result}) , 200  #result.result -> first is variable and second is function that returns the result
+    else :
+        return "Task Not Ready" , 405 
 
 
 
@@ -153,6 +184,7 @@ if __name__=='__main__':
     #dbase.create_all()
     dbase.debug = True
     app.debug = True
+    
     app.run(port = 3456)
 
 # #8.76 confussing
