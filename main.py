@@ -10,6 +10,9 @@ from flask_restful import Api , marshal_with , fields , marshal
 from create_initial_data import create_data
 from api import *
 from werkzeug.security import check_password_hash , generate_password_hash
+from worker import celery_init_app
+
+
 curr_dict = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -35,22 +38,19 @@ app.config['SECURITY_TRACKABLE'] = True
 dbase.init_app(app)
 jwt= JWTManager(app)
 app.app_context().push()
+celery_app = None # We have created above 
 
-# Register the API blueprint
-#register_api(app) # Anuj
+
 with app.app_context():
     user_datastore = SQLAlchemyUserDatastore(dbase, User, Role)
     security.init_app(app, user_datastore)
-    #dbase.drop_all()
     dbase.create_all()
-    # create_data(user_datastore)
-    #create_data(user_datastore)
+    celery_app = celery_init_app(app)
     # Only run create_data if not in reloader
     if os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
         create_data(user_datastore)
-# Some keywords 
-rt = render_template
-
+        
+        
 
 @app.get('/') # , methods = ['GET','POST'])
 def home():
@@ -134,15 +134,8 @@ def user_info():
         return jsonify({"message":"No user found"}), 404
     return marshal(users , user_fields)
 
-# @app.get('/book_details')
-# def book_details():
-#     book_detail = dbase.session.query(Book, Section.name).join(Section, Book.sec_id == Section.id).all()
-#     #book_detail = Book.query.join(Section).filter(Book.sec_id == Section.id).all()
-#     bk = book_detail[0]
-#     print(bk.name )
-#     print(bk[0].title)
-#     print(bk)
-#     return "H"
+
+
 
 
 if __name__=='__main__':
