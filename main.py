@@ -3,14 +3,14 @@ from model import *
 from api import *
 import os
 from sqlalchemy import func
-from flask_security.utils import hash_password, verify_password
-from flask_security import Security, SQLAlchemyUserDatastore, login_required, login_user, logout_user , auth_required , roles_required
-from flask_jwt_extended import JWTManager, create_access_token
-from flask_restful import Api , marshal_with , fields , marshal
+#from flask_security.utils import hash_password, verify_password
+from flask_security import  SQLAlchemyUserDatastore, auth_required , roles_required
+from flask_jwt_extended import JWTManager
+from flask_restful import fields , marshal
 from create_initial_data import create_data
-from api import *
 from werkzeug.security import check_password_hash , generate_password_hash
 from worker import celery_init_app
+from task import add
 
 
 curr_dict = os.path.abspath(os.path.dirname(__file__))
@@ -38,7 +38,7 @@ app.config['SECURITY_TRACKABLE'] = True
 dbase.init_app(app)
 jwt= JWTManager(app)
 app.app_context().push()
-celery_app = None # We have created above 
+celery_app = None # celery_instance
 
 
 with app.app_context():
@@ -133,6 +133,17 @@ def user_info():
     if len(users) == 0:
         return jsonify({"message":"No user found"}), 404
     return marshal(users , user_fields)
+
+# Lets create a route for celery work and we need to trigger a taks from task file from main.py
+# Now if we directly return the function form task , it will be not be asynchronus : it will act as a normal function 
+# For making synchronus will use the functionf of shared_task decoraters 
+@app.route('/c_demo')
+def c_demo():
+    add.delay(2,5) # It wont trigger right now it will triger later , and the parameters of add will go inside delay
+    return "Celery Test"
+
+
+
 
 
 
