@@ -4,8 +4,9 @@ import time
 import flask_excel as make_response_from_query_sets
 from model import * 
 import pandas as pd
+from mail import *
 
-# Lets create a simple add function
+
 
 @shared_task() # This decorater is making celery taks , otherwise its a normat task 
 def add(x,y):
@@ -35,3 +36,11 @@ def create_csv():
     #     return (csv_out) , 200
     # else:
     #     return ({"message":"No books found , DB is empty"}) , 404
+
+
+@shared_task(ignore_result=True)  # Celery that is tiggring the mailing function 
+def daily_reminder(to , subject , message):
+    send_email(to, subject, message) # Now i have triggred that send mail fumction 
+    return ("Mail sent sucessfully!") # In this case i dont need to return anything , so will use ignore in shared task
+    
+# Now we need celery beats 

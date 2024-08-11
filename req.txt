@@ -31,3 +31,4 @@ Flask-JWT-Extended==4.6.0
 flask-excel==0.0.7
 pyexcel-xlsx==0.6.0
 requests==2.32.3
+checksumdir

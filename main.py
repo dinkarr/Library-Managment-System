@@ -1,4 +1,4 @@
-from flask import Flask , render_template , request , redirect , url_for , flash , session , jsonify , url_for 
+from flask import Flask , render_template , request , redirect , url_for , flash , session , jsonify , url_for , send_file
 from model import *  
 from api import *
 import os
@@ -12,6 +12,8 @@ from worker import celery_init_app
 from task import create_csv , add
 from celery.result import AsyncResult # Will use to retreve the task result giving the task id as arg 
 import flask_excel as excel
+from task import daily_reminder
+from celery.schedules import crontab
 
 curr_dict = os.path.abspath(os.path.dirname(__file__))
 
@@ -164,7 +166,7 @@ def get_task(task_id):
 
 @app.route('/start_exp')
 def start_exp():
-    task = create_csv.delay()
+    task = create_csv.delay() # In this pass a argumnent and that can be used for giving filename
     return jsonify({"Exported Result CSV": task.id })
 
 
@@ -174,17 +176,30 @@ def get_exp(task_id):
     
     #result.ready() # If task is completed it will return true else false 
     if result.ready():
-        return jsonify({"result":result.result}) , 200  #result.result -> first is variable and second is function that returns the result
+        return send_file('./User-CSV/file.csv') , 200   #result.result -> first is variable and second is function that returns the result
     else :
         return "Task Not Ready" , 405 
 
+# 1.43 celery beats 
 
+@celery_app.on_after_configure.connect    # this app is my celery app , function to regester the schedules 
+def setup_periodic_tasks(sender, **kwargs):
+    # Calls test('hello') every 10 seconds.
+    #sender.add_periodic_task(60.0, daily_reminder.s('test@app.com' , "Hello from test beat " , "<h2>Test</h2>"), name='send mail')
+
+# Working 
+    # Executes 
+    sender.add_periodic_task(
+        crontab(minute=58, hour=0 , day_of_week=1),
+        daily_reminder.s('test@app.com' , "Hello from Daily @ 45 " , "<h2>Test2</h2>"), name="Every Monday as 7"
+    )
+    
+# # sender.add_periodic_task(time_in_seconds , function_that_you_want_to_triger.s(parameters))
 
 if __name__=='__main__':
     #dbase.create_all()
     dbase.debug = True
     app.debug = True
-    
     app.run(port = 3456)
 
 # #8.76 confussing
