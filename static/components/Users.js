@@ -69,9 +69,9 @@ export default{
 
             },
         })
-    const data = await res.json()
-    if(res.ok){
-        this.all_users = data
-    }
+        const data = await res.json()
+        if(res.ok){
+            this.all_users = data
+            }
     },
 }

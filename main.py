@@ -1,4 +1,4 @@
-from flask import Flask , render_template , request , redirect , url_for , flash , session , jsonify , url_for , send_file
+from flask import Flask , render_template , request , jsonify , send_file
 from model import *  
 from api import *
 import os
@@ -12,7 +12,7 @@ from worker import celery_init_app
 from task import create_csv , add
 from celery.result import AsyncResult # Will use to retreve the task result giving the task id as arg 
 import flask_excel as excel
-from task import daily_reminder
+from task import daily_reminder , send_overdue_reminders , send_monthly_records
 from celery.schedules import crontab
 
 curr_dict = os.path.abspath(os.path.dirname(__file__))
@@ -30,12 +30,6 @@ app.config['WTF_CSRF_ENABLED'] = app.config.get('WTF_CSRF_ENABLED', False)  # Di
 app.config['SECURITY_TOKEN_AUTHENTICATION_HEADER'] = 'Authentication-Token'  # Token authentication header
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Disable modification tracking
 app.config['DEBUG'] = app.config.get('DEBUG', True)  # Enable debug mode
-# Security configurations
-# app.config['SECURITY_REGISTERABLE'] = True
-# app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
-# app.config['SECURITY_TRACKABLE'] = True
-
-
 
 dbase.init_app(app)
 jwt= JWTManager(app)
@@ -115,7 +109,6 @@ def signup():
         roles=[user_role]
     )
     dbase.session.commit()
-        
     return jsonify({'message':'User created successfully , kindly login'}) , 201
 
 
@@ -152,7 +145,7 @@ def c_demo():
 
 ## Creating another route for retriving the data 
 
-
+'''
 @app.route('/get_task/<task_id>')
 def get_task(task_id):
     # Now i nedd to get my taks , fetch the task from result backend 
@@ -163,14 +156,17 @@ def get_task(task_id):
         return jsonify({"result":result.result}) , 200  #result.result -> first is variable and second is function that returns the result
     else :
         return "Task Not Ready" , 405 
+'''
 
-@app.route('/start_exp')
+@auth_required("token")  
+@roles_required("librarian")
+@app.route('/start_export')
 def start_exp():
     task = create_csv.delay() # In this pass a argumnent and that can be used for giving filename
     return jsonify({"Exported Result CSV": task.id })
 
 
-@app.route('/get_exp/<task_id>')
+@app.route('/get_export/<task_id>')
 def get_exp(task_id):
     result = AsyncResult(task_id)
     
@@ -184,15 +180,20 @@ def get_exp(task_id):
 
 @celery_app.on_after_configure.connect    # this app is my celery app , function to regester the schedules 
 def setup_periodic_tasks(sender, **kwargs):
-    # Calls test('hello') every 10 seconds.
-    #sender.add_periodic_task(60.0, daily_reminder.s('test@app.com' , "Hello from test beat " , "<h2>Test</h2>"), name='send mail')
 
-# Working 
-    # Executes 
     sender.add_periodic_task(
-        crontab(minute=58, hour=0 , day_of_week=1),
-        daily_reminder.s('test@app.com' , "Hello from Daily @ 45 " , "<h2>Test2</h2>"), name="Every Monday as 7"
+        crontab(minute=0, hour=10 ),
+        daily_reminder.s(), name="Daily Reminders"
     )
+    sender.add_periodic_task(
+        crontab(minute=0, hour=10),
+        send_overdue_reminders.s(), name="Daily Reminders"
+    )
+    sender.add_periodic_task(
+        crontab(minute=0, hour=10, day_of_month=2),
+        send_monthly_records.s(), name="Monthly  Reminders"
+    )
+    
     
 # # sender.add_periodic_task(time_in_seconds , function_that_you_want_to_triger.s(parameters))
 
@@ -202,10 +203,3 @@ if __name__=='__main__':
     app.debug = True
     app.run(port = 3456)
 
-# #8.76 confussing
-# # 1:16:18 # admin dashboard and checking the user typr and all other factors    
-## Problem that the user is creating twice 
-## Other problem is localStorage , everytime i loging as user and then login as admin , the local storage is empty 
-
-# Search done using js , 
-# Now do user can read , cancle request , user profile 

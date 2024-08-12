@@ -8,11 +8,15 @@ export default{
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item">
+            <li class="nav-item" v-if="is_loged_in">
               <router-link class="nav-link active" aria-current="page" to="/home">Home</router-link>
             </li>
-            <li class="nav-item">
+            <li class="nav-item" v-if="is_loged_in">
               <router-link class="nav-link active" to="/books">Books</router-link>
+            </li>
+            
+            <li class="nav-item" v-if="is_loged_in && role === 'user'">
+              <router-link class="nav-link active" to="/user_profile">User Profile</router-link>
             </li>
             <li class="nav-item">
               <router-link class="nav-link active" v-if="!is_loged_in" to="/signup">Signup</router-link>
@@ -24,14 +28,19 @@ export default{
             <li class="nav-item" v-if='role=="librarian"'>
               <router-link class="nav-link active" to="/addbook">Add Book</router-link>
             </li>
+            <li class="nav-item "  v-if="is_loged_in && role === 'librarian'" >
+              <router-link class="nav-link active" to="/sections">Sections</router-link>
+            </li>
+            <li class="nav-item "  v-if="is_loged_in && role === 'librarian'" >
+              <router-link class="nav-link active" to="/stats">Statistics</router-link>
+            </li>
             <li class="nav-item active" v-if="is_loged_in">
               <button class="nav-link active" @click="logout">Logout</button>
             </li>
+          
+            
           </ul>
-          <form class="d-flex" role="search">
-            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-            <button class="btn btn-outline-success" type="submit">Search</button>
-          </form>
+         
           
         </div>
       </div>

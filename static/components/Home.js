@@ -3,8 +3,9 @@
 
 import Admin from "./Admin.js"
 import User from "./User.js"
+// import User_Profile from "./User_Profile.js"
 
-
+// Changed User to User_profile
 export default{
     template: `<div>
     <User v-if="user_role=='user'"/> 

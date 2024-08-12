@@ -11,6 +11,7 @@ import AddBook from './components/AddBook.js'
 import Books from './components/Books.js'
 import Sections from './components/Sections.js'
 import User_Profile from './components/User_Profile.js'
+import Stats from './components/Stats.js'
 
 const routes = [
     {path:'/' , component: Login  , name:'Login'}, // single configrations // i.e. when ever someone visits '/' then home.js will be rendered 
@@ -22,6 +23,7 @@ const routes = [
     {path: '/books' , component : Books },
     {path: '/sections' , component : Sections },
     {path: '/user_profile' , component : User_Profile },
+    {path: '/stats' , component : Stats },
     
 ]
 

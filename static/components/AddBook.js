@@ -1,7 +1,8 @@
 export default{
     template:`
+<div>
     <div class='d-flex justify-content-center align-items-center' style="min-height: 80vh;">
-    <div class="mb-3 p-5 bg-light" style="width: 90%; max-width: 600px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+        <div class="mb-3 p-5 bg-light" style="width: 90%; max-width: 600px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
         <form @submit.prevent="addbook">
             <div class="mb-3">
                 <input type='text' placeholder='Book Title' v-model="resource.title" class="form-control" required>
@@ -26,6 +27,7 @@ export default{
             </div>
             <button type="submit" class="btn btn-primary">Add Book</button>
         </form>
+        </div>
     </div>
 </div>
 

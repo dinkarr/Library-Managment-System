@@ -5,6 +5,7 @@ import flask_excel as make_response_from_query_sets
 from model import * 
 import pandas as pd
 from mail import *
+from datetime import datetime , timedelta
 
 
 
@@ -24,23 +25,80 @@ def create_csv():
     # Create DataFrame and export to CSV
     df = pd.DataFrame(data, columns=column_names)
     csv_out = df.to_csv(index=False)
-    
+    path = './User-CSV/file.csv'
     # Save CSV to file
-    with open('./User-CSV/file.csv', 'w') as file:  # 'w' mode for writing text
+    with open(path, 'w') as file:  # 'w' mode for writing text
         file.write(csv_out)
     
+    send_file('admin@app.com' ,'Exported CSV File', path , 'PFA: Your CSV' )
     return "file.csv"  # Returning the name of the     
 
-
-    # if csv_out:
-    #     return (csv_out) , 200
-    # else:
-    #     return ({"message":"No books found , DB is empty"}) , 404
-
-
 @shared_task(ignore_result=True)  # Celery that is tiggring the mailing function 
-def daily_reminder(to , subject , message):
-    send_email(to, subject, message) # Now i have triggred that send mail fumction 
-    return ("Mail sent sucessfully!") # In this case i dont need to return anything , so will use ignore in shared task
+def daily_reminder():
+    now = datetime.now()
+    threshold_time = now - timedelta(hours=24)
     
-# Now we need celery beats 
+    users = User.query.all()
+    
+    sub = "You have not visited in last 24 hours"
+    mes = '<h6>Hi User , You have not visited in last 24 hours , Kindly visit some new books are added to LMS</h6>'
+    for user in users:
+        if user.last_login < threshold_time:
+            send_email(user.email, sub, mes) # Now i have triggred that send mail fumction 
+    return ("Mail sent sucessfully!") # In this case i dont need to return anything , so will use ignore in shared task
+
+
+@shared_task(ignore_result=True)
+def send_overdue_reminders():
+    one_day_ago = datetime.now() - timedelta(days=1)
+    
+    overdue_records = Record.query.filter(
+        Record.status == 'issued',
+        Record.retdate == one_day_ago
+    ).all()
+    
+    subject = "Reminder: Return Date Overdue"
+    message_template = '<h6>Hi {user_name},<br>Your record with ID {record_id} was due for return on {retdate}. Please return it as soon as possible.</h6>'
+
+    emailed_users = set() # To avoid duplicates 
+    
+    for record in overdue_records:
+        user = record.user
+        if user.id not in emailed_users:
+            message = message_template.format(user_name=user.username, record_id=record.id, retdate=record.retdate.strftime('%Y-%m-%d'))
+            send_email(user.email, subject, message)
+            emailed_users.add(user.id)
+    return ("Mail sent sucessfully ")
+    
+def send_monthly_records():
+    # Get the current date and calculate the start and end of the current month
+    now = datetime.now()
+    start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    if now.month == 12:
+        start_of_next_month = start_of_month.replace(year=now.year + 1, month=1)
+    else:
+        start_of_next_month = start_of_month.replace(month=now.month + 1)
+    end_of_month = start_of_next_month - timedelta(seconds=1)
+    
+    # Query records for the current month
+    monthly_records = Record.query.filter(
+        Record.retdate >= start_of_month,
+        Record.retdate <= end_of_month
+    ).all()
+
+    # Query all users
+    users = User.query.all()
+
+    # Email subject and message
+    subject = "Records for the Current Month"
+    message_template = '<h6>Hi {user_name},<br>Here are the records for the current month:</h6><ul>{records_list}</ul>'
+    
+    # Loop through users and send records
+    for user in users:
+        # Create a list of records for the email
+        records_list = ''.join([f'<li>Record ID: {record.id}, Return Date: {record.retdate.strftime("%Y-%m-%d")}</li>' for record in monthly_records])
+        message = message_template.format(user_name=user.username, records_list=records_list)
+        # Send email
+        send_email(user.email, subject, message)
+    
+    return ( "Monthly records sent to all users successfully!"), 200

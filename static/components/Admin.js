@@ -62,7 +62,10 @@ export default{
             </tbody>
             </table>
         </div>
-
+        <br>
+        <div :style="containerStyle">
+            <button  @click="export_job" class="btn btn-primary" >Export Book CSV</button>
+        <div>
     </div>`,
     data(){
         return{
@@ -82,9 +85,27 @@ export default{
             resource_revoke:{
                 req_id : null,
             },
+            exp_job : null ,
         }
     },
     methods :{
+        async export_job(){
+            const res = await fetch('/start_export',{
+                method:'GET',
+                headers:{
+                    "Authentication-Token": this.auth_token
+                }
+            })
+            const data = await res.json()
+            if(res.ok){
+                this.exp_job = data
+            }
+            else{
+                alert(data.message)
+            }
+        }
+        ,
+
         async request_list(){
             const res = await fetch('/api/record_query',{
                 method:'GET',
