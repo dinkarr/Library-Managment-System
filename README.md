@@ -33,7 +33,7 @@ This system allows users to:
 
 3. Install the necessary dependencies (make sure you have Python and pip installed):
     ```bash
-    pip install -r requirements.txt
+    pip install -r req.txt
     ```
 
 4. Set up the database:
