@@ -61,7 +61,3 @@ This system allows users to:
 ## Contributing
 
 If you would like to contribute to this project, feel free to fork the repository, create a branch, and submit a pull request. Please follow the guidelines for writing clear commit messages and well-documented code.
-
-## Acknowledgements
-
-- Thanks to everyone who contributed to the development and testing of this project.
